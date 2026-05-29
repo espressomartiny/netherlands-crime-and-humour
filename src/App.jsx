@@ -4,38 +4,35 @@ import FilterBar from "./components/FilterBar"
 import { locations } from "./data/locations"
 
 export default function App() {
-  console.log([...new Set(locations.map(l => l.place_refscale))]) 
   const [activeGenres, setActiveGenres] = useState([])
   const [activeAuthors, setActiveAuthors] = useState([])
   const [activePlaceTypes, setActivePlaceTypes] = useState([])
   const [showEmotions, setShowEmotions] = useState(false)
   const [showGenreColors, setShowGenreColors] = useState(false)
-  
 
-const filtered = useMemo(() => {
-  return locations.filter(l => {
-    if (l.place_type === 'route') {
-      if (activePlaceTypes.length && !activePlaceTypes.includes('route')) return false
+  const filtered = useMemo(() => {
+    return locations.filter(l => {
+      if (l.place_type === 'route') {
+        if (activePlaceTypes.length && !activePlaceTypes.includes('route')) return false
+        if (activeGenres.length && !activeGenres.includes(l.genre)) return false
+        if (activeAuthors.length && !activeAuthors.includes(l.author_surname)) return false
+        return l.lat_from !== null && l.lng_from !== null &&
+               l.lat_to !== null && l.lng_to !== null
+      }
+      if (l.place_setting === 'synthetised') {
+        if (activePlaceTypes.length && !activePlaceTypes.includes(l.place_type)) return false
+        if (activeGenres.length && !activeGenres.includes(l.genre)) return false
+        if (activeAuthors.length && !activeAuthors.includes(l.author_surname)) return false
+        return l.lat_from !== null && l.lng_from !== null &&
+               l.lat_to !== null && l.lng_to !== null
+      }
+      if (l.lat === null) return false
       if (activeGenres.length && !activeGenres.includes(l.genre)) return false
       if (activeAuthors.length && !activeAuthors.includes(l.author_surname)) return false
-      return l.lat_from !== null && l.lng_from !== null &&
-             l.lat_to !== null && l.lng_to !== null
-    }
-    
-    if (l.place_setting === 'synthetised') {
       if (activePlaceTypes.length && !activePlaceTypes.includes(l.place_type)) return false
-      if (activeGenres.length && !activeGenres.includes(l.genre)) return false
-      if (activeAuthors.length && !activeAuthors.includes(l.author_surname)) return false
-      return l.lat_from !== null && l.lng_from !== null &&
-             l.lat_to !== null && l.lng_to !== null
-    }
-    if (l.lat === null) return false
-    if (activeGenres.length && !activeGenres.includes(l.genre)) return false
-    if (activeAuthors.length && !activeAuthors.includes(l.author_surname)) return false
-    if (activePlaceTypes.length && !activePlaceTypes.includes(l.place_type)) return false
-    return true
-  })
-}, [activeGenres, activeAuthors, activePlaceTypes])
+      return true
+    })
+  }, [activeGenres, activeAuthors, activePlaceTypes])
 
   return (
     <div className="app">
@@ -48,13 +45,13 @@ const filtered = useMemo(() => {
         >
           {showEmotions ? '😄 emotions on' : '😐 emotions off'}
         </button>
-        <span className="navbar-tag">humor · krimi</span>
         <button
-  className={`emotion-toggle ${showGenreColors ? 'emotion-toggle--active' : ''}`}
-  onClick={() => setShowGenreColors(v => !v)}
->
-  genre colors
-</button>
+          className={`emotion-toggle ${showGenreColors ? 'emotion-toggle--active' : ''}`}
+          onClick={() => setShowGenreColors(v => !v)}
+        >
+          genre colors
+        </button>
+        <span className="navbar-tag">humour · crime</span>
       </nav>
       <FilterBar
         locations={locations}
@@ -67,8 +64,8 @@ const filtered = useMemo(() => {
       />
       <Map locations={filtered} showEmotions={showEmotions} showGenreColors={showGenreColors} />
       <footer className="footer">
-        <span>2026</span>
-        <span>© Taaltool | OpenStreetMap | CARTO</span>
+        {/* <span>2026</span>
+        <span>© Taaltool | OpenStreetMap | CARTO</span> */}
       </footer>
     </div>
   )
