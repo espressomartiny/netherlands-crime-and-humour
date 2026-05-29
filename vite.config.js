@@ -1,7 +1,16 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
-// https://vite.dev/config/
 export default defineConfig({
+  base: "/netherlands-crime-and-humour/",
+  root: './src',
+  publicDir: '../public',
+  server: {
+    hmr: false,
+  },
+  build: {
+    outDir: '../dist',
+    modulePreload: false,
+  },
   plugins: [react()],
-})
+});

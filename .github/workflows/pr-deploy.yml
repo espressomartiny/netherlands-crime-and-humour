@@ -1,0 +1,64 @@
+name: PR-Deploy
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build-PR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        uses: bahmutov/npm-install@v1
+
+      - name: Prepare config
+        env:
+          PR_NUMBER: ${{ github.event.number }}
+          BASE_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          # ugly hack
+          sed -i "s/base: \"\/netherlands-crime-and-humour\/\"/base: \"\/netherlands-crime-and-humour\/pr-$PR_NUMBER\/\"/g" ./vite.config.js
+          # ugly hack 2
+          sed -i "s@<footer className=\"footer\">@<footer className=\"footer\"><a href=\"$BASE_URL/pull/$PR_NUMBER\">PR-$PR_NUMBER</a>@g" ./src/App.jsx
+      - name: Run tests
+        run: |
+          npm run test
+      
+      - name: Build project
+        run: |
+          npm run build
+
+      - name: Upload pr build files
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-${{ github.event.number }}-files
+          path: ./dist
+
+  deploy:
+    name: Deploy-PR
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download PR artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: pr-${{ github.event.number }}-files
+          path: ./dist
+
+      - name: Deploy to PR GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          destination_dir: pr-${{ github.event.number }}
